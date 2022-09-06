@@ -7,3 +7,6 @@
 </ul>
 
 <a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'polls/style.css' %}">
