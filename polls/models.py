@@ -1,6 +1,3 @@
-from django.db import models
-
-# Create your models here.
 import datetime
 from django.db import models
 from django.utils import timezone
@@ -9,7 +6,7 @@ from django.utils import timezone
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
-    end_date = models.DateTimeField("end date")
+    end_date = models.DateTimeField('end date', null=True)
 
     def __str__(self):
         return self.question_text
@@ -20,11 +17,15 @@ class Question(models.Model):
 
     def is_published(self):
         """Returns True if current date is on or after question’s publication date."""
-        return timezone.now() >= self.pub_date
+        now = timezone.now()
+        return now >= self.pub_date
 
     def can_vote(self):
         """Returns True if voting is allowed for this question"""
-        return self.pub_date <= timezone.now() <= self.end_date
+        now = timezone.now()
+        return self.pub_date <= now <= self.end_date
+
+
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_text = models.CharField(max_length=200)
