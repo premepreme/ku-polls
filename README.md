@@ -13,4 +13,5 @@ to be added.
 * [Vision statement](https://github.com/premepreme/ku-polls/wiki/Vision-Statement)
 * [Requirements](https://github.com/premepreme/ku-polls/wiki/Requirements)
 * [Development Plan](https://github.com/premepreme/ku-polls/wiki/Development-Plan)
-* [Iteration 1 plan](https://github.com/premepreme/ku-polls/wiki/Iteration-1-Plan)
+* [Iteration 1 Plan](https://github.com/premepreme/ku-polls/wiki/Iteration-1-Plan)
+* [Iteration 2 Plan](https://github.com/premepreme/ku-polls/wiki/Iteration-2-Plan)
