@@ -9,6 +9,7 @@ from .models import Choice, Question
 
 
 class IndexView(generic.ListView):
+    """This class is for display the question"""
     template_name = 'polls/index.html'
     context_object_name = 'latest_question_list'
 
@@ -21,6 +22,7 @@ class IndexView(generic.ListView):
 
 
 class DetailView(generic.DetailView):
+    """This class is for display each question"""
     model = Question
     template_name = 'polls/detail.html'
     def get_queryset(self):
@@ -30,6 +32,7 @@ class DetailView(generic.DetailView):
         return Question.objects.filter(pub_date__lte=timezone.now())
 
     def get(self, request, *args, **kwargs):
+        """To back to index page if not found"""
         try:
             question = get_object_or_404(Question, pk=kwargs['pk'])
         except Http404:
@@ -40,12 +43,15 @@ class DetailView(generic.DetailView):
             return HttpResponseRedirect(reverse('polls:index'))
         return super().get(request, *args, **kwargs)
 
+
 class ResultsView(generic.DetailView):
+    """This class is for display each question's result"""
     model = Question
     template_name = 'polls/results.html'
 
 
 def vote(request, question_id):
+    """process of voting"""
     question = get_object_or_404(Question, pk=question_id)
     try:
         selected_choice = question.choice_set.get(pk=request.POST['choice'])
@@ -64,7 +70,8 @@ def vote(request, question_id):
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
 
 
-def reversetopoll(self):
+def reverse_to_poll(self):
+    """redirect to homepage"""
     return HttpResponseRedirect(reverse('polls:index'))
 
 
