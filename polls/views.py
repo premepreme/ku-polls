@@ -1,10 +1,12 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
+from django.contrib import messages
 from django.utils import timezone
 
 from .models import Choice, Question
+
 
 class IndexView(generic.ListView):
     template_name = 'polls/index.html'
@@ -27,6 +29,16 @@ class DetailView(generic.DetailView):
         """
         return Question.objects.filter(pub_date__lte=timezone.now())
 
+    def get(self, request, *args, **kwargs):
+        try:
+            question = get_object_or_404(Question, pk=kwargs['pk'])
+        except Http404:
+            messages.error(
+                request, "Question is not available")
+        if not question.can_vote():
+            messages.error(request, "Question is not available")
+            return HttpResponseRedirect(reverse('polls:index'))
+        return super().get(request, *args, **kwargs)
 
 class ResultsView(generic.DetailView):
     model = Question
@@ -51,5 +63,8 @@ def vote(request, question_id):
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
 
+
+def reversetopoll(self):
+    return HttpResponseRedirect(reverse('polls:index'))
 
 
