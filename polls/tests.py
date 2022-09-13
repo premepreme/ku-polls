@@ -7,7 +7,15 @@ from django.urls import reverse
 from .models import Question
 
 
-# Create your tests here.
+def create_question(question_text, days):
+    """
+    Create a question with the given `question_text` and published the
+    given number of `days` offset to now (negative for questions published
+    in the past, positive for questions that have yet to be published).
+    """
+    time = timezone.localtime() + datetime.timedelta(days=days)
+    return Question.objects.create(question_text=question_text, pub_date=time)
+
 class QuestionModelTests(TestCase):
 
     def test_was_published_recently_with_future_question(self):
@@ -37,14 +45,52 @@ class QuestionModelTests(TestCase):
         recent_question = Question(pub_date=time)
         self.assertIs(recent_question.was_published_recently(), True)
 
-def create_question(question_text, days):
-    """
-    Create a question with the given `question_text` and published the
-    given number of `days` offset to now (negative for questions published
-    in the past, positive for questions that have yet to be published).
-    """
-    time = timezone.now() + datetime.timedelta(days=days)
-    return Question.objects.create(question_text=question_text, pub_date=time)
+    def test_is_published_with_old_question(self):
+        """is_published() have to returns True if pub_date already passed"""
+        past = timezone.now() - datetime.timedelta(days=7)
+        question = Question(pub_date=past)
+        self.assertIs(question.is_published(), True)
+
+    def test_is_published_with_future_question(self):
+        """ is_published() have to return false if not pub_date yet"""
+        future = timezone.now() + datetime.timedelta(days=7)
+        question = Question(pub_date=future)
+        self.assertFalse(question.is_published())
+
+    def test_can_vote_with_votable_question(self):
+        """can_vote() have to return True for questions whose current
+        date/time is exactly the pub_date or exactly the end_date (voting allowed)"""
+        past = timezone.now() - timezone.timedelta(days=7)
+        future = timezone.now() + timezone.timedelta(days=7)
+        question = Question(pub_date=past, end_date=future)
+        self.assertTrue(question.can_vote())
+
+    def test_can_vote_with_future_question(self):
+        """can_vote() have to return False if
+        questions whose current time aren't
+        within the publication date and end date."""
+        future = timezone.now() + timezone.timedelta(days=7)
+        question = Question(pub_date=future)
+        self.assertFalse(question.can_vote())
+
+    def test_can_vote_with_unable_to_vote_question(self):
+        """Return false if the question is expired """
+        past = timezone.now() - timezone.timedelta(days=7)
+        question = Question(end_date=past)
+        self.assertFalse(question.can_vote())
+
+    def test_can_vote_with_no_end_date(self):
+        """Return ture if a poll have no end_date (null) """
+        now = timezone.now()
+        question = Question(pub_date=now)
+        self.assertTrue(question.can_vote())
+
+    def test_can_vote_current_time_equal_to_end_date(self):
+        """Return Ture for question which expired now (vote allow)"""
+        expired_time = timezone.now() + timezone.timedelta(seconds=1)
+        question = Question(end_date=expired_time)
+        self.assertTrue(question.can_vote())
+
 
 class QuestionIndexViewTests(TestCase):
     def test_no_questions(self):
@@ -103,6 +149,7 @@ class QuestionIndexViewTests(TestCase):
             [question2, question1],
         )
 
+
 class QuestionDetailViewTests(TestCase):
     def test_future_question(self):
         """
@@ -112,7 +159,7 @@ class QuestionDetailViewTests(TestCase):
         future_question = create_question(question_text='Future question.', days=5)
         url = reverse('polls:detail', args=(future_question.id,))
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_past_question(self):
         """
