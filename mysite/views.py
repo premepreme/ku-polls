@@ -14,6 +14,7 @@ def signup(request):
             user = authenticate(username=username, password=raw_passwd)
             login(request, user)
         return redirect('polls')
+
     else:
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
