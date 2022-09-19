@@ -1,12 +1,12 @@
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render,redirect
 from django.urls import reverse
 from django.views import generic
 from django.contrib import messages
 from django.utils import timezone
-
+from django.contrib.auth.decorators import login_required
 from .models import Choice, Question
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 class IndexView(generic.ListView):
     """This class is for display the question"""
@@ -21,7 +21,7 @@ class IndexView(generic.ListView):
         return Question.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
 
 
-class DetailView(generic.DetailView):
+class DetailView(LoginRequiredMixin, generic.DetailView):
     """This class is for display each question"""
     model = Question
     template_name = 'polls/detail.html'
@@ -73,5 +73,25 @@ def vote(request, question_id):
 def reverse_to_poll(self):
     """redirect to homepage"""
     return HttpResponseRedirect(reverse('polls:index'))
+
+
+@login_required
+def vote(request, question_id):
+    """Add vote to choice of the current question."""
+    user = request.user
+    if not user.is_authenticated:
+        return redirect('login')
+    question = get_object_or_404(Question, pk=question_id)
+    try:
+        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+    except (KeyError, Choice.DoesNotExist):
+        return render(request, 'polls/detail.html', {
+            'question': question,
+            'error_message': "You didn't select a choice.",
+        })
+    else:
+        selected_choice.votes += 1
+        selected_choice.save()
+        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
 
 
