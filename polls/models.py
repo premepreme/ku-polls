@@ -14,6 +14,14 @@ class Question(models.Model):
         """represents the class objects as a string."""
         return self.question_text
 
+    @property
+    def votes(self) -> int:
+        """Return votes amount of that choice.
+        Returns:
+            int: votes amount
+        """
+        return Vote.objects.filter(choice=self).count()
+
     def was_published_recently(self):
         """Return true if the question was recently published."""
         now = timezone.now()
@@ -48,6 +56,6 @@ class Vote(models.Model, ):
     choice = models.ForeignKey(
         Choice, blank=False, null=False, on_delete=models.CASCADE)
 
-    def __str__(self) -> str:
-        """Returns a string representation of this Vote"""
-        return f'{self.user} votes {self.choice}'
+    @property
+    def question(self):
+        return self.choice.question
