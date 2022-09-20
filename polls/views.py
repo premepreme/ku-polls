@@ -25,6 +25,7 @@ class DetailView(LoginRequiredMixin, generic.DetailView):
     """This class is for display each question"""
     model = Question
     template_name = 'polls/detail.html'
+
     def get_queryset(self):
         """
         Excludes any questions that aren't published yet.
@@ -44,12 +45,14 @@ class DetailView(LoginRequiredMixin, generic.DetailView):
         return super().get(request, *args, **kwargs)
 
 
+
 class ResultsView(generic.DetailView):
     """This class is for display each question's result"""
     model = Question
     template_name = 'polls/results.html'
 
 
+@login_required
 def vote(request, question_id):
     """process of voting"""
     question = get_object_or_404(Question, pk=question_id)
@@ -62,11 +65,14 @@ def vote(request, question_id):
             'error_message': "You didn't select a choice.",
         })
     else:
-        selected_choice.votes += 1
-        selected_choice.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
+        try:
+            vote = Vote.objects.get(user=request.user, choice__question=question)
+            if vote:
+                vote.choice = selected_choice
+                vote.save()
+        except Vote.DoesNotExist:
+            new_vote = Vote.objects.create(user=request.user, choice=selected_choice)
+            new_vote.save()
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
 
 
@@ -75,29 +81,8 @@ def reverse_to_poll(self):
     return HttpResponseRedirect(reverse('polls:index'))
 
 
-@login_required
-def vote(request, question_id):
-    """Add vote to choice of the current question."""
-    user = request.user
-    if not user.is_authenticated:
-        return redirect('login')
-    question = get_object_or_404(Question, pk=question_id)
-    try:
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
-    except (KeyError, Choice.DoesNotExist):
-        return render(request, 'polls/detail.html', {
-            'question': question,
-            'error_message': "You didn't select a choice.",
-        })
-    else:
-        try:
-            vote_object = Vote.objects.get(user=user)
-            vote_object.choice = selected_choice
-            vote_object.save()
-        except Vote.DoesNotExist:
-            Vote.objects.create(user=user, choice=selected_choice).save()
 
-        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+
 
 
 
