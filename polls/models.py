@@ -14,14 +14,6 @@ class Question(models.Model):
         """represents the class objects as a string."""
         return self.question_text
 
-    @property
-    def votes(self) -> int:
-        """Return votes amount of that choice.
-        Returns:
-            int: votes amount
-        """
-        return Vote.objects.filter(choice=self).count()
-
     def was_published_recently(self):
         """Return true if the question was recently published."""
         now = timezone.now()
@@ -48,6 +40,11 @@ class Choice(models.Model):
     def __str__(self):
         """represents the class objects as a string."""
         return self.choice_text
+
+    @property
+    def votes(self) -> int:
+        """Return votes amount of that choice."""
+        return Vote.objects.filter(choice=self).count()
 
 
 class Vote(models.Model, ):
