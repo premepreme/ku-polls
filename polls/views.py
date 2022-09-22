@@ -32,17 +32,23 @@ class DetailView(LoginRequiredMixin, generic.DetailView):
         """
         return Question.objects.filter(pub_date__lte=timezone.now())
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, pk):
         """To back to index page if not found"""
+        self.question = get_object_or_404(Question, pk=pk)
         try:
-            question = get_object_or_404(Question, pk=kwargs['pk'])
-        except Http404:
-            messages.error(
-                request, "Question is not available")
-        if not question.can_vote():
-            messages.error(request, "Question is not available")
-            return HttpResponseRedirect(reverse('polls:index'))
-        return super().get(request, *args, **kwargs)
+            vote = Vote.objects.get(user=request.user,
+                                    choice__in=self.question.choice_set.all())
+
+            previous_one = vote.choice.choice_text
+        except (Vote.DoesNotExist, TypeError):
+            previous_one = ""
+
+        if self.question.can_vote():
+            return render(request, self.template_name, {"question": self.question,
+                                                        "previous_vote": previous_one})
+        else:
+            messages.error(request, f"Poll number {self.question.id} is not available to vote")
+            return redirect("polls:index")
 
 
 
