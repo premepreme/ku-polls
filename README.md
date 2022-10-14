@@ -1,6 +1,6 @@
+# ku-polls
 [![Python application](https://github.com/premepreme/ku-polls/actions/workflows/python-package.yml/badge.svg)](https://github.com/premepreme/ku-polls/actions/workflows/python-package.yml)
 [![codecov](https://codecov.io/gh/premepreme/ku-polls/branch/main/graph/badge.svg?token=ROXD815LEK)](https://codecov.io/gh/premepreme/ku-polls)
-# ku-polls
 
 An application for conducting a poll or survey, written in Python using Django. It is based on the [Django Tutorial project](https://docs.djangoproject.com/en/4.1/intro/tutorial01/), with additional functionality.
 
