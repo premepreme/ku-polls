@@ -81,7 +81,8 @@ class QuestionModelTests(TestCase):
     def test_can_vote_with_unable_to_vote_question(self):
         """Return false if the question is expired """
         past = timezone.now() - timezone.timedelta(days=7)
-        question = Question(end_date=past)
+        past2 = timezone.now() - timezone.timedelta(days=14)
+        question = Question(pub_date=past2, end_date=past)
         self.assertFalse(question.can_vote())
 
     def test_can_vote_with_no_end_date(self):
@@ -93,7 +94,8 @@ class QuestionModelTests(TestCase):
     def test_can_vote_current_time_equal_to_end_date(self):
         """Return Ture for question which expired now (vote allow)"""
         expired_time = timezone.now() + timezone.timedelta(seconds=1)
-        question = Question(end_date=expired_time)
+        past = timezone.now() - timezone.timedelta(days=1)
+        question = Question(pub_date=past, end_date=expired_time)
         self.assertTrue(question.can_vote())
 
 
@@ -166,7 +168,7 @@ class QuestionDetailViewTests(TestCase):
             create_question(question_text='Future question.', days=5)
         url = reverse('polls:detail', args=(future_question.id,))
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
 
     def test_past_question(self):
         """
